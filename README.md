@@ -2,6 +2,8 @@
 Modified Pacman Clock code from original by jnthas.  For ESP32 D1 Mini.  
 WiFi setup for AP mode, but left original code for WiFiManager if you wish to enable. 
 
+Video:  https://www.youtube.com/watch?v=4IPQbADvfUQ
+
 Pacman Clock displays time and date.  
 Game play will occur upon bootup.   Manual game play will be enabled
 when a joystick is connected and the trigger button pushed.
