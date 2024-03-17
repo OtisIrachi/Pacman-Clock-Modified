@@ -55,7 +55,7 @@ extern int TRG_PB;
 //**********************************************
 //   WEMOS D1 MINI 32 Daughterboard PINOUTS
 //**********************************************
-//        VAR   IO PIN   BOARD LABEL    COLOR        DIN
+//        VAR   IO PIN   BOARD LABEL    COLOR      16 PIN DIN
 #define R1_PIN  33    // IO33           BROWN 1       1        
 #define G1_PIN  26    // IO26-D0        RED 1         2
 #define B1_PIN  27    // IO27           ORANGE 1      3
@@ -110,6 +110,7 @@ void setup()
   pinMode(RT_PB, INPUT_PULLUP);
   pinMode(TRIGG, INPUT_PULLUP);
 
+  // Add this is if you are not using WiFiManager 
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     
@@ -133,15 +134,20 @@ void setup()
   dma_display->setCursor(0, 0);
   dma_display->println("Pac-Man");
   dma_display->println(" Clock");
- 
+
+  //*****************************************
+  // Add this is if you are using WiFiManager
+  /*
   dma_display->setTextColor(myBLUE);
   dma_display->setCursor(0, 25);
   dma_display->println("PMan-Wifi");
   dma_display->println("Enter Your");
   dma_display->println("SSID/Pass");
 
-//  wifi.connect();  // This is used if you wish to connect to a foriegn network
-
+  wifi.connect();  // This is used if you wish to connect to a foriegn network
+  }
+  //*****************************************
+  
   cwDateTime.begin();
   clockface->setup(&cwDateTime);
 
