@@ -30,10 +30,16 @@ int lastSecond;
 int firstnextBlock;
 int lastnextBlock;
 int accumulatedfoodCount;
-int gameScore = 4;
-int lastgameScore;
+int livesScore = 4;
+int lastlivesScore;
 bool gameEnable = 0;
 bool gameStart = 0;
+int gamePoints = 0;
+int lastcount = 0;
+int GameOver = 0;
+int pointsOffset = 0;
+int pointsLength;
+String gamePointStr;
 
 int PacManSpd = 75;     // was 75
 int ChomperSpd = 60;    // was 60
@@ -124,11 +130,12 @@ Clockface::Clockface(Adafruit_GFX* display)
 void Clockface::setup(CWDateTime *dateTime) 
 {
   this->_dateTime = dateTime;
-  //Locator::getDisplay()->setFont(&hourFont);
   Locator::getDisplay()->setFont(&Super_Mario_Bros__24pt7b);
   randomSeed(dateTime->getMilliseconds() + millis());
   drawMap();
+  gamePoints = 0;
   updateClock();
+
 }
 //*************************************************************************
 const char* Clockface::weekDayName(int weekday) 
@@ -145,6 +152,7 @@ const char* Clockface::monthName(int month)
 //*************************************************************************
 void Clockface::updateStart() 
 {
+  gamePoints = 0;
   Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);
   // *** This section is for printing Hour and Minutes ***   
   //Locator::getDisplay()->setFont(&hourFont);       // original Font 
@@ -159,54 +167,51 @@ void Clockface::updateStart()
 //*************************************************************************
 void Clockface::updateScore() 
 {
-    Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);
-  
-    // *** This section is for printing Hour and Minutes ***   
-    //Locator::getDisplay()->setFont(&hourFont);       // original Font 
-    Locator::getDisplay()->setFont(&Super_Mario_Bros__24pt7b);     
-    Locator::getDisplay()->setTextColor(CLOCKCOLOR);
-
-    if(((this->_dateTime->getHour()) < 10)) 
-       {
-       clockOffset = 4;     // shift short clock display to the left 
-       Locator::getDisplay()->setCursor(15 + clockOffset, 28);
-       Locator::getDisplay()->print(this->_dateTime->getHour("00"));         
-       Locator::getDisplay()->setCursor(34 - clockOffset, 28);  // was 15, 26 
-       Locator::getDisplay()->print(this->_dateTime->getMinute("00"));    
-       }
-    else 
-       {
-       clockOffset = 0;     // print full clock centered
-       Locator::getDisplay()->setCursor(15 - clockOffset, 28);  // was 15, 26 
-       Locator::getDisplay()->print(this->_dateTime->getHour("00"));         
-       Locator::getDisplay()->setCursor(34 - clockOffset, 28);  // was 15, 26        
-       Locator::getDisplay()->print(this->_dateTime->getMinute("00"));       
-       }
-
-    // *** This section is for printing Month, Day, Year ***
+    // First Clear Clock Block, then Print Scores
+                       //  fillRect(x,  y,  w,  h,   color)
+    Locator::getDisplay()->fillRect(14, 19, 36, 20, 0x0000);
+    if(gameEnable == 0)Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);
+    
+    // ****** This section is for printing Lives Left and Points Score ******
     Locator::getDisplay()->setFont(&Picopixel);
-    if(lastgameScore > gameScore)
+    if(lastlivesScore > livesScore)
       {
       Locator::getDisplay()->setTextColor(REDCOLOR);  
       }
-    if(lastgameScore < gameScore) 
+    if(lastlivesScore <= livesScore) 
       {
       Locator::getDisplay()->setTextColor(GREENCOLOR);      
       }
     
-     Locator::getDisplay()->setCursor(24, 35);
-     Locator::getDisplay()->print("LIVES");
-     Locator::getDisplay()->setCursor(30, 42);
-     Locator::getDisplay()->print(gameScore);    
-     Locator::getDisplay()->print(" ");
-     lastgameScore = gameScore;
-     delay(3000);
-    
-  if(gameScore == 0)
+     Locator::getDisplay()->setCursor(17, 24);
+     Locator::getDisplay()->print("LIVES = ");
+     Locator::getDisplay()->setCursor(43, 24);
+     Locator::getDisplay()->print(livesScore);  
+
+     Locator::getDisplay()->setTextColor(REDCOLOR);  
+     Locator::getDisplay()->setCursor(19, 30);
+     Locator::getDisplay()->print("POINTS");
+
+     gamePointStr = String(gamePoints);
+     
+     pointsLength = gamePointStr.length();      // int
+     pointsOffset = ((64 - (pointsLength * 4)) / 2);  // 
+
+     Locator::getDisplay()->setCursor(pointsOffset, 36);
+     Locator::getDisplay()->print(gamePoints);
+       
+     lastlivesScore = livesScore;
+     if(gameEnable == 0)
+       {
+       delay(3000);
+       Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);       
+       }
+     
+  if(livesScore == 0)
      {
+     GameOver = 1;
      Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);
-     // *** This section is for printing Hour and Minutes ***   
-     //Locator::getDisplay()->setFont(&hourFont);       // original Font 
+
      Locator::getDisplay()->setFont(&Picopixel);    
      Locator::getDisplay()->setTextColor(REDCOLOR);
 
@@ -215,11 +220,17 @@ void Clockface::updateScore()
      Locator::getDisplay()->print("GAME");
      Locator::getDisplay()->setCursor(24, 42);  // was 15, 26 
      Locator::getDisplay()->print("OVER!");
-     delay(3000);
-     gameScore = 4;
-     lastgameScore = gameScore;     
+     
+     if(GameOver == 1)
+        {
+        delay(3000);
+        Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);
+        }
+        
+     livesScore = 4;
+     lastlivesScore = livesScore;  
+     GameOver = 0;   
      }
-
  
 }
 //*************************************************************************
@@ -311,9 +322,13 @@ void Clockface::update()
       delay(3000);
       Locator::getDisplay()->fillRect(0, 63, 0, 63, 0x0000);
       gameStart = 0;
-      resetMap();     
+      resetMap();
+      Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000); 
+      if(gameEnable == 0) updateClock();      
       }
 
+  if(gameEnable == 0)
+  {
   //**************************************************
   // Seconds blink  
   if ((millis() - lastMillisSec) >= 1000) 
@@ -339,11 +354,12 @@ void Clockface::update()
     lastMillisSec = millis();
  
     }// End If lastMillisSec
+  }// End if gameEnable 
   //*******************************************************************
   // Update Clock
   if (millis() - lastMillisTime >= 60000) 
-    {
-    updateClock();
+    {   
+    if(gameEnable == 0) updateClock();
     lastMillisTime = millis();
     }
   //*******************************************************************
@@ -401,15 +417,18 @@ if (millis() - lastMillisO >= PacManSpd)
          {
          if(PacmanOInvincFlag == 1)
             {
-            pacmano->setState(PacmanO::State::JAILED);                     
+            pacmano->setState(PacmanO::State::JAILED); 
+            gamePoints = gamePoints + 200;                
             }
                     
          if((PacmanOInvincFlag == 0) && (ChomperInvincFlag == 0))
             {
             chomper->setState(Chomper::State::STOPPED); 
-            gameScore--;
-            updateScore();       
-            resetMap();               
+            livesScore--;
+            updateScore(); 
+            if(gameEnable == 0)gamePoints = 0; 
+            Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);         
+            resetMap();           
             }    
          }// End PacmanOCollision
     }// End If Pacman JAILED 
@@ -468,14 +487,17 @@ if (millis() - lastMillisR >= PacManSpd)
          {
          if((PacmanRInvincFlag == 1))
             {
-            pacmanr->setState(PacmanR::State::JAILED);                               
+            pacmanr->setState(PacmanR::State::JAILED);
+            gamePoints = gamePoints + 200;                        
             }
          if((PacmanRInvincFlag == 0) && (ChomperInvincFlag == 0))
             {
             chomper->setState(Chomper::State::STOPPED); 
-            gameScore--;
+            livesScore--;
             updateScore();
-            resetMap();               
+            if(gameEnable == 0)gamePoints = 0; 
+            Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);  
+            resetMap();                          
             }    
          }// End PacmanRCollision 
       }// End If Pacman JAILED       
@@ -534,14 +556,17 @@ if (millis() - lastMillisB >= PacManSpd)
          {
          if((PacmanBInvincFlag == 1))
             {
-            pacmanb->setState(PacmanB::State::JAILED);                      
+            pacmanb->setState(PacmanB::State::JAILED); 
+            gamePoints = gamePoints + 200;                   
             }
          if((PacmanBInvincFlag == 0) && (ChomperInvincFlag == 0))
             {
             chomper->setState(Chomper::State::STOPPED);       
-            gameScore--;
-            updateScore();      
-            resetMap();               
+            livesScore--;
+            updateScore();
+            if(gameEnable == 0)gamePoints = 0;       
+            Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000); 
+            resetMap();                       
             }               
          }// End PacmanBCollision 
     }// End If Pacman JAILED 
@@ -600,14 +625,17 @@ if (millis() - lastMillisP >= PacManSpd)
          { 
          if((PacmanPInvincFlag == 1))
             {
-            pacmanp->setState(PacmanP::State::JAILED);                              
+            pacmanp->setState(PacmanP::State::JAILED); 
+            gamePoints = gamePoints + 200;                       
             }
          if((PacmanPInvincFlag == 0) && (ChomperInvincFlag == 0))
             {
             chomper->setState(Chomper::State::STOPPED); 
-            gameScore--;
-            updateScore();      
-            resetMap();               
+            livesScore--;
+            updateScore(); 
+            if(gameEnable == 0)gamePoints = 0;     
+            Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000); 
+            resetMap();                                    
             }    
          }// End PacmanPCollision    
     }// End If Pacman JAILED 
@@ -618,7 +646,7 @@ if (millis() - lastMillisP >= PacManSpd)
      
   else
      {
-     //pacmanp->update(0); 
+     
      }
          
     //**************************************************************
@@ -730,14 +758,12 @@ if (millis() - lastMillisP >= PacManSpd)
          }
          }
       else
-         {
-         //Serial.println("if(NO JOYSTICK)"); 
-         //directionDecision(nextBlk, chomper->_direction == Direction::HALT);
-         //dirc = Direction::HALT;
-         //chomper->turn(static_cast<Direction>(dirc));                   
+         {                  
          go = DirectionM::MOVE_N; 
          chomper->move(Direction::HALT, DirectionM::MOVE_N);   
          }
+   
+    updateScore();
     }// End if gameEnable 
     
       // Makes Chomper Invincible
@@ -763,18 +789,18 @@ if (millis() - lastMillisP >= PacManSpd)
         }// End if nextBlkC
         
       if((PacmanOState == PacmanO::State::JAILED) && (PacmanRState == PacmanR::State::JAILED) && (PacmanBState == PacmanB::State::JAILED) && (PacmanPState == PacmanP::State::JAILED))
-         { 
-         delay(3000);
-         gameScore++;
+         {         
+         livesScore++;
          updateScore(); 
-         resetMap();                                        
+         delay(3000);
+         resetMap();                                       
          }
                            
       if (countBlocks(MapBlock::FOOD) == 0) 
-        {
-        delay(3000);
-        gameScore++;
-        updateScore();         
+        {       
+        livesScore++;
+        updateScore();
+        delay(3000);         
         resetMap();
         } 
                                       
@@ -924,8 +950,16 @@ void Clockface::resetMap()
 
   memcpy( _MAP, _MAP_CONST, sizeof(_MAP_CONST) );
   drawMap();
-  accumulatedfoodCount = 0;
-  updateClock();
+  if(gameEnable == 0) 
+    {
+    Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000); 
+    updateClock();
+    }
+  if(gameEnable == 1) 
+    {
+    Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000); 
+    updateScore();
+    }
   
 }
 //*************************************************************************
@@ -1244,16 +1278,24 @@ bool Clockface::compareTestJoy(int nexBlock, const int* moving_block)
 //*************************************************************************
 int Clockface::countBlocks(Clockface::MapBlock elem) 
 {
-  int count = 0;
+int count = 0;
+
   for (int i = 0; i < MAP_SIZE; i++) 
     {
     for (int j = 0; j < MAP_SIZE; j++) 
       {
       if (_MAP[i][j] == elem)
-        count++;
+         {
+         count++;         
+         }       
       }
     }
-
+  // Increments gamepoints by 10 points after every FOOD is eaten
+  if(lastcount != count)
+    {
+    gamePoints = gamePoints + 10;   
+    }
+  lastcount = count;
   return count;
 }
 //*************************************************************************
