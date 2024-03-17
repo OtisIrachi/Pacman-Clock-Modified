@@ -32,12 +32,8 @@ Clockface *clockface;
 Timezone myTZ;
 
 // Replace with your network credentials
-//const char *ssid = "RCINet2.4";
-//const char *password = "cae4844bb2";
-
-// Replace with your network credentials
-const char *ssid = "josephine";
-const char *password = "drain_8490follow";
+const char *ssid = "your-network";
+const char *password = "your_password";
 
 extern int UP_DIR;
 extern int DN_DIR;
