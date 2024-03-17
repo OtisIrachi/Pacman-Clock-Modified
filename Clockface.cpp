@@ -189,7 +189,7 @@ void Clockface::updateScore()
      Locator::getDisplay()->print(livesScore);  
 
      Locator::getDisplay()->setTextColor(REDCOLOR);  
-     Locator::getDisplay()->setCursor(19, 30);
+     Locator::getDisplay()->setCursor(21, 30);
      Locator::getDisplay()->print("POINTS");
 
      gamePointStr = String(gamePoints);
