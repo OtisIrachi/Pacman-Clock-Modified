@@ -101,6 +101,7 @@ class Clockface: public IClockface {
     int countBlocks(Clockface::MapBlock elem);          
     bool compareTest(int nexBlock, const int* values);
     bool compareTestJoy(int nexBlock, const int* moving_block);
+    void gameComp();
     void resetMap();
     void directionDecisionC(MapBlock nextBlk, bool moving_axis_x);
     void directionDecisionO(MapBlock nextBlk, bool moving_axis_x);
